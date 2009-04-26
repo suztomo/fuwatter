@@ -98,13 +98,19 @@ $(function() {
 //       var url = "http://twitter.com/status/user_timeline/RedWolves.json?callback=?"; 
     var url = "http://twitter.com/statuses/friends_timeline.json?callback=?";
     $.getJSON(url, hello);
-    setInterval(
+    var getjson_id = setInterval(
         function () {
             $.getJSON(url, hello);
         },
         5000
     );
+    $(window).error(
+        function() {
+            clearInterval(getjson_id);
+            alert("You might have exceeded rate limit.");
 
+        }
+    );
 });
 
 
