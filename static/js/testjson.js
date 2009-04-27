@@ -142,6 +142,7 @@ $(function() {
 //       var url = "http://twitter.com/status/user_timeline/RedWolves.json?callback=?"; 
     var url = "http://twitter.com/statuses/friends_timeline.json?callback=?";
     $.getJSON(url, hello);
+
     var getjson_id = setInterval(
         function () {
             $.getJSON(url, hello);
@@ -152,7 +153,7 @@ $(function() {
     $(window).error(
         function() {
             clearInterval(getjson_id);
-            $('#error').html("You might have exceeded rate limit.").fadeIn(500);
+            $('#error').html("Cannot fetch data from twitter.com <br />You might have exceeded rate limit.").fadeIn(500);
         }
     );
 
