@@ -5,7 +5,8 @@ $(function() {
 
     var p = 0;
     var canvasWidth = $("#images").width() - 250;
-    var canvasHeight = 600;
+    var canvasHeight = $(window).height();
+    $("#images").css('height', canvasHeight);
     var last_post_id = 0;
     var max_z_index = 0;
     var user_last_post_id = {};
@@ -119,6 +120,7 @@ $(function() {
                 );
             }
         );
+        this._drawArea.fadeIn(500);
     }
 
     function hello(data, textStatus) {
@@ -146,15 +148,14 @@ $(function() {
         },
         15000
     );
-/*
+
     $(window).error(
         function() {
             clearInterval(getjson_id);
-            alert("You might have exceeded rate limit.");
-
+            $('#error').html("You might have exceeded rate limit.").fadeIn(500);
         }
     );
-*/
+
 });
 
 
