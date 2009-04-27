@@ -4,11 +4,13 @@ $(function() {
     $("div.fade").hover(function(){$(this).fadeOut(100);$(this).fadeIn(500);});
 
     var p = 0;
-    var canvasWidth = 1000;
+    var canvasWidth = $("#images").width() - 250;
     var canvasHeight = 600;
     var last_post_id = 0;
     var max_z_index = 0;
-    function TweetObjectPrototype(message, icon_image_url) {
+    var user_last_post_id = {};
+    function TweetObjectPrototype(name, message, icon_image_url) {
+        this.name = name;
         this._drawArea = $('<div class="tweet_area"></div');
         this._messageText = $('<p class="message">' + message + '</p>');
         this._messageText.appendTo(this._drawArea);
@@ -18,8 +20,8 @@ $(function() {
         this._iconImage.attr('src',icon_image_url);
         this._left = Math.random() * canvasWidth;
         this._top = Math.random() * canvasHeight;
-        this._v_left = 0.001;
-        this._v_top = 0.001;
+        this._v_left = 0.01;
+        this._v_top = 0.01;
         this._a_left = 0;
         this._a_top = 0;
         this._drawArea.css('left', this._left);
@@ -32,8 +34,6 @@ $(function() {
 
         setInterval(
             function() {
-//                movetarget._a_left += Math.random() * 10 - 5;
-//                movetarget._a_top += Math.random() * 10 - 5;
                 movetarget._v_left += movetarget._a_left / 50;
                 movetarget._v_top += movetarget._a_top / 50;
                 movetarget._left += movetarget._v_left;
@@ -41,11 +41,11 @@ $(function() {
 
                 if (movetarget._left < 0 || movetarget._left > canvasWidth) {
                    movetarget._v_left *= -1;
-                   movetarget._a_left *= -1;
+//                   movetarget._a_left *= -1;
                 }
                 if (movetarget._top < 0 || movetarget._top > canvasHeight) {
                    movetarget._v_top *= -1;
-                   movetarget._a_top *= -1;
+//                   movetarget._a_top *= -1;
                 }
 
                 movetarget._drawArea.css('left', movetarget._left);
@@ -56,12 +56,26 @@ $(function() {
             },
             100
         );
+        this._resume_id = null;
         setInterval(
             function() {
                 movetarget._a_left = Math.random() * 4 - 2;
                 movetarget._a_top = Math.random() * 4 - 2;
             },
             5000 + Math.random() * 30000
+        );
+        setInterval(
+            function() {
+                movetarget._messageText.fadeIn(500);
+                movetarget._resume_id = setTimeout(
+                    function() {
+                        movetarget._messageText.fadeOut(100);
+                        movetarget._resume_id = null;
+                    },
+                    5000
+                );
+            },
+            1000 + Math.random() * 30000
         );
         this._drawArea.hover(
             function () {
@@ -70,29 +84,57 @@ $(function() {
                 movetarget._drawArea.css('z-index', max_z_index);
             },
             function () {
-                movetarget._messageText.fadeOut(100);
+                if (! movetarget._resume_id) {
+                    movetarget._messageText.fadeOut(100);
+                }
+            }
+        );
+
+
+        this._iconImage.click(
+            function() {
+                var url = "http://twitter.com/statuses/friends/" + movetarget.name + ".json?callback=?";
+                $.getJSON(
+                    url,
+                    function (data, textStatus) {
+                        var max_id = 0;
+                        var pre_max_id = user_last_post_id[movetarget.name] || 0;
+                        var friends_count = 0;
+                        $.each(
+                            data,
+                            function(i, item) {
+                                if (friends_count < 20 && item.status && item.status.id > pre_max_id) {
+                                    var hoge = new TweetObjectPrototype(item.screen_name, item.status.text, item.profile_image_url);
+                                    if (item.status.id > max_id) {
+                                        max_id = item.status.id + 0;
+                                    }
+                                    friends_count++;
+                                } else {
+                                        console.log("skipped");
+                                }
+                            }
+                        );
+                        user_last_post_id[movetarget.name] = max_id;
+                    }
+                );
             }
         );
     }
 
     function hello(data, textStatus) {
         var max_id = 0;
-        $.each(data, function(i, item) {
-            if (item.id > last_post_id) {
-                var fuga = new TweetObjectPrototype(item.text, item.user["profile_image_url"]);
+        $.each(
+            data,
+            function(i, item) {
+                hoge = item;
+                if (item.id > last_post_id) {
+                    var fuga = new TweetObjectPrototype(item.user.screen_name, item.text, item.user["profile_image_url"]);
+                }
+                if (max_id < item.id) {
+                    max_id = item.id;
+                }
             }
-            if (max_id < item.id) {
-                max_id = item.id;
-            }
-//            $("img#profile").attr("src", item.user["profile_image_url"]);
-            $("#tweets ul").append("<li>"
-                      + item.text
-                      + " <span class='created_at'>"  
-                      + item.created_at
-                      + " via "  
-                      + item.source  
-                      + "</span></li>"); 
-            });
+        );
         last_post_id = max_id;
     }
 //       var url = "http://twitter.com/status/user_timeline/RedWolves.json?callback=?"; 
@@ -102,8 +144,9 @@ $(function() {
         function () {
             $.getJSON(url, hello);
         },
-        5000
+        15000
     );
+/*
     $(window).error(
         function() {
             clearInterval(getjson_id);
@@ -111,6 +154,7 @@ $(function() {
 
         }
     );
+*/
 });
 
 
