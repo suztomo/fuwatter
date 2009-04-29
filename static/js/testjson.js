@@ -57,10 +57,13 @@ $(function() {
         this._messageText.appendTo(this._drawArea);
         this._messageText.hide();
         this._iconImage = $('<img class="icon_image" />');
-        this._nameText = $('<a class="screen_name" href="http://twitter.com/' + this.name + '"></a>');
+        this._iconImage.appendTo(this._drawArea);
+        this._nameText = $('<a target="_blank" class="screen_name" href="http://twitter.com/' + this.name + '"></a>');
         this._nameText.appendTo(this._drawArea);
         this._drawArea.appendTo('#images');
         this._iconImage.attr('src',icon_image_url);
+        this._loadingImage = $('<img class="loading" src="/img/loading.gif" />');
+        this._loadingImage.appendTo(this._drawArea);
         this._left = Math.random() * canvasWidth;
         this._top = Math.random() * canvasHeight;
         this._v_left = 0.01;
@@ -69,18 +72,17 @@ $(function() {
         this._a_top = 0;
         this._drawArea.css('left', this._left);
         this._drawArea.css('top', this._top);
-        this._iconImage.appendTo(this._drawArea);
         p+= 30;
         var movetarget = this;
         movetarget._a_left = Math.random() * 4 - 2;
         movetarget._a_top = Math.random() * 4 - 2;
 
-        setInterval(
+        this._moveInterval = setInterval(
             function() {
                 movetarget._v_left += movetarget._a_left / 50;
                 movetarget._v_top += movetarget._a_top / 50;
-//                movetarget._left += movetarget._v_left;
-//                movetarget._top += movetarget._v_top;
+                movetarget._left += movetarget._v_left;
+                movetarget._top += movetarget._v_top;
 
                 if (movetarget._left < 0 || movetarget._left > canvasWidth) {
                    movetarget._v_left *= -1;
@@ -100,14 +102,14 @@ $(function() {
             100
         );
         this._resume_id = null;
-        setInterval(
+        this._changeDirectionInterval = setInterval(
             function() {
                 movetarget._a_left = Math.random() * 4 - 2;
                 movetarget._a_top = Math.random() * 4 - 2;
             },
             5000 + Math.random() * 30000
         );
-        setInterval(
+        this._tweetInterval = setInterval(
             function() {
                 movetarget._messageText.fadeIn(500);
                 movetarget._resume_id = setTimeout(
@@ -117,6 +119,7 @@ $(function() {
                     },
                     5000
                 );
+                movetarget._nameText.html('');
             },
             1000 + Math.random() * 30000
         );
@@ -155,16 +158,33 @@ $(function() {
                                     }
                                     friends_count++;
                                 } else {
-                                        console.log("skipped");
                                 }
                             }
                         );
                         user_last_post_id[movetarget.name] = max_id;
+                        movetarget._loadingImage.fadeOut(500);
                     }
                 );
+                movetarget._loadingImage.css('display', 'block');
             }
         );
         this._drawArea.fadeIn(500);
+        setTimeout(
+            function() {
+                clearInterval(movetarget._moveInterval);
+                clearInterval(movetarget._changeDirectionInterval);
+                clearInterval(movetarget._tweetInterval);
+                movetarget._drawArea.fadeOut(3000);
+                setInterval(
+                    function () {
+                        movetarget._drawArea.remove();
+                    },
+                    10000
+                );
+            }
+            ,
+            15000 + Math.random() + 60000
+        );
     }
 
     function hello(data, textStatus) {
@@ -199,7 +219,7 @@ $(function() {
                 }
             );*/
         },
-        15000
+        1500000
     );
     $(window).error(
         function() {
@@ -209,7 +229,6 @@ $(function() {
             .fadeOut(10000);
         }
     );
-    put_giza_text($('#fuwatter'), "Fuwatter");
 
 });
 
