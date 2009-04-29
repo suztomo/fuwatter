@@ -10,6 +10,46 @@ $(function() {
     var last_post_id = 0;
     var max_z_index = 0;
     var user_last_post_id = {};
+
+
+    function create_random_string(str_length) {
+        var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        var str = "";
+        for(i = 0; i < str_length; ++i) {
+            str += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return str;
+    }
+
+    function put_giza_text(targetNode, message) {
+        var len = message.length;
+        var fixed_str = "";
+        var fixed_count = 0;
+        targetNode.html(create_random_string(len));
+        var timer = setInterval(
+            function () {
+                fixed_str += message[fixed_count];
+                if (fixed_str.length >= len) {
+                    clearInterval(timer);
+                }
+                fixed_count++;
+            },
+            150
+        );
+        var timer2 = setInterval(
+            function() {
+                random_str = create_random_string(len - fixed_count);
+                targetNode.html(fixed_str + random_str);
+                if (fixed_str.length >= len) {
+                    clearInterval(timer2);
+                }
+            },
+            100
+        );
+    }
+
+
+
     function TweetObjectPrototype(name, message, icon_image_url) {
         this.name = name;
         this._drawArea = $('<div class="tweet_area"></div');
@@ -17,6 +57,8 @@ $(function() {
         this._messageText.appendTo(this._drawArea);
         this._messageText.hide();
         this._iconImage = $('<img class="icon_image" />');
+        this._nameText = $('<a class="screen_name" href="http://twitter.com/' + this.name + '"></a>');
+        this._nameText.appendTo(this._drawArea);
         this._drawArea.appendTo('#images');
         this._iconImage.attr('src',icon_image_url);
         this._left = Math.random() * canvasWidth;
@@ -37,8 +79,8 @@ $(function() {
             function() {
                 movetarget._v_left += movetarget._a_left / 50;
                 movetarget._v_top += movetarget._a_top / 50;
-                movetarget._left += movetarget._v_left;
-                movetarget._top += movetarget._v_top;
+//                movetarget._left += movetarget._v_left;
+//                movetarget._top += movetarget._v_top;
 
                 if (movetarget._left < 0 || movetarget._left > canvasWidth) {
                    movetarget._v_left *= -1;
@@ -83,11 +125,13 @@ $(function() {
                 movetarget._messageText.fadeIn(500);
                 max_z_index++;
                 movetarget._drawArea.css('z-index', max_z_index);
+                put_giza_text(movetarget._nameText, movetarget.name);
             },
             function () {
                 if (! movetarget._resume_id) {
                     movetarget._messageText.fadeOut(100);
                 }
+                movetarget._nameText.html('');
             }
         );
 
@@ -146,16 +190,26 @@ $(function() {
     var getjson_id = setInterval(
         function () {
             $.getJSON(url, hello);
+            /*.error(
+                function() {
+                    clearInterval(getjson_id);
+                    $('#error').html("Cannot fetch data from twitter.com <br />You might have exceeded rate limit.")
+                    .fadeIn(500)
+                    .fadeOut(10000);
+                }
+            );*/
         },
         15000
     );
-
     $(window).error(
         function() {
             clearInterval(getjson_id);
-            $('#error').html("Cannot fetch data from twitter.com <br />You might have exceeded rate limit.").fadeIn(500);
+            $('#error').html("Cannot fetch data from twitter.com <br />You might have exceeded rate limit.").
+            fadeIn(500)
+            .fadeOut(10000);
         }
     );
+    put_giza_text($('#fuwatter'), "Fuwatter");
 
 });
 
